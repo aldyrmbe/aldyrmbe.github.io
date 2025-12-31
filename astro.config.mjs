@@ -1,11 +1,19 @@
 // @ts-check
-
-import mdx from '@astrojs/mdx';
-import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
+import tailwindcss from '@tailwindcss/vite';
+import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://example.com',
-	integrations: [mdx(), sitemap()],
+  site: 'https://aldyrambe.dev',
+  vite: {
+    plugins: [tailwindcss()]
+  },
+  integrations: [sitemap()],
+  markdown: {
+    shikiConfig: {
+      theme: 'github-dark',
+      wrap: true
+    }
+  }
 });

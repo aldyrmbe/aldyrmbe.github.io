@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { getCollection } from 'astro:content';
+
+const allProjects = await getCollection('projects');
+const sortedProjects = allProjects.sort((a, b) => {
+  // Featured first, then by order
+  if (a.data.featured && !b.data.featured) return -1;
+  if (!a.data.featured && b.data.featured) return 1;
+  return a.data.order - b.data.order;
+});
+
+// Get unique technologies for filtering
+const allTechs = [...new Set(allProjects.flatMap(p => p.data.technologies))].sort();
+---
+
+<BaseLayout title="Projects" description="A collection of projects I've worked on, from open source contributions to full-stack applications.">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+    <!-- Header -->
+    <header class="mb-12 opacity-0 animate-fadeIn">
+      <div class="font-mono text-sm text-[var(--color-accent-cyan)] mb-2">
+        <span class="text-[var(--color-text-muted)]">$</span> ls -la ./projects
+      </div>
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] mb-4">
+        My Projects
+      </h1>
+      <p class="text-lg text-[var(--color-text-secondary)] max-w-2xl">
+        A curated collection of projects I've built. From web applications to open source tools, 
+        each project represents a unique challenge and learning opportunity.
+      </p>
+    </header>
+    
+    <!-- Technology Filter -->
+    <div class="mb-12 opacity-0 animate-fadeIn stagger-1">
+      <div class="font-mono text-sm text-[var(--color-text-muted)] mb-4">
+        <span class="text-[var(--color-accent-emerald)]">$</span> filter --by technology
+      </div>
+      <div class="flex flex-wrap gap-2" id="tech-filters">
+        <button 
+          class="tech-filter active px-3 py-1 rounded-lg font-mono text-sm transition-all duration-200 bg-[var(--color-accent-cyan)]/10 text-[var(--color-accent-cyan)] border border-[var(--color-accent-cyan)]/20"
+          data-tech="all"
+        >
+          all
+        </button>
+        {allTechs.map(tech => (
+          <button 
+            class="tech-filter px-3 py-1 rounded-lg font-mono text-sm transition-all duration-200 bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] border border-transparent hover:border-[var(--color-border)]"
+            data-tech={tech.toLowerCase()}
+          >
+            {tech}
+          </button>
+        ))}
+      </div>
+    </div>
+    
+    <!-- Projects Grid -->
+    <div class="grid md:grid-cols-2 gap-6" id="projects-grid">
+      {sortedProjects.map((project, index) => (
+        <div 
+          class="project-item opacity-0 animate-fadeIn" 
+          style={`animation-delay: ${0.1 + index * 0.1}s`}
+          data-technologies={project.data.technologies.map(t => t.toLowerCase()).join(',')}
+        >
+          <ProjectCard
+            title={project.data.title}
+            description={project.data.description}
+            slug={project.id}
+            heroImage={project.data.heroImage}
+            technologies={project.data.technologies}
+            github={project.data.github}
+            live={project.data.live}
+            featured={project.data.featured}
+          />
+        </div>
+      ))}
+    </div>
+    
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-12">
+      <p class="text-[var(--color-text-muted)] font-mono">
+        No projects found with that technology. Try another filter.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const filterButtons = document.querySelectorAll('.tech-filter');
+  const projectItems = document.querySelectorAll('.project-item');
+  const emptyState = document.getElementById('empty-state');
+  
+  filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const tech = button.getAttribute('data-tech');
+      
+      // Update active state
+      filterButtons.forEach(btn => {
+        btn.classList.remove('active', 'bg-[var(--color-accent-cyan)]/10', 'text-[var(--color-accent-cyan)]', 'border-[var(--color-accent-cyan)]/20');
+        btn.classList.add('bg-[var(--color-bg-tertiary)]', 'text-[var(--color-text-secondary)]');
+      });
+      button.classList.add('active', 'bg-[var(--color-accent-cyan)]/10', 'text-[var(--color-accent-cyan)]', 'border-[var(--color-accent-cyan)]/20');
+      button.classList.remove('bg-[var(--color-bg-tertiary)]', 'text-[var(--color-text-secondary)]');
+      
+      // Filter projects
+      let visibleCount = 0;
+      projectItems.forEach(item => {
+        const technologies = item.getAttribute('data-technologies') || '';
+        const shouldShow = tech === 'all' || technologies.includes(tech);
+        
+        if (shouldShow) {
+          item.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+      
+      // Show/hide empty state
+      if (visibleCount === 0) {
+        emptyState?.classList.remove('hidden');
+      } else {
+        emptyState?.classList.add('hidden');
+      }
+    });
+  });
+</script>
+

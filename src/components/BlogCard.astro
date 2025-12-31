@@ -1,0 +1,72 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  slug: string;
+  pubDate: Date;
+  tags?: string[];
+  category?: string;
+  heroImage?: string;
+}
+
+const { title, description, slug, pubDate, tags = [], category, heroImage } = Astro.props;
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+---
+
+<article class="group relative rounded-xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg-card)] card-hover">
+  <!-- Hero Image -->
+  {heroImage && (
+    <div class="aspect-[2/1] overflow-hidden bg-[var(--color-bg-tertiary)]">
+      <img 
+        src={heroImage} 
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+      />
+    </div>
+  )}
+  
+  <div class="p-6">
+    <!-- Meta -->
+    <div class="flex flex-wrap items-center gap-3 mb-3 font-mono text-xs">
+      {category && (
+        <span class="px-2 py-1 rounded bg-[var(--color-accent-cyan)]/10 text-[var(--color-accent-cyan)]">
+          {category}
+        </span>
+      )}
+      <time datetime={pubDate.toISOString()} class="text-[var(--color-text-muted)]">
+        {formatDate(pubDate)}
+      </time>
+    </div>
+    
+    <!-- Title -->
+    <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-accent-cyan)] transition-colors line-clamp-2">
+      <a href={`/blog/${slug}`} class="before:absolute before:inset-0">
+        {title}
+      </a>
+    </h3>
+    
+    <!-- Description -->
+    <p class="text-[var(--color-text-secondary)] text-sm leading-relaxed mb-4 line-clamp-3">
+      {description}
+    </p>
+    
+    <!-- Tags -->
+    {tags.length > 0 && (
+      <div class="flex flex-wrap gap-2">
+        {tags.slice(0, 3).map(tag => (
+          <span class="px-2 py-1 rounded text-xs font-mono bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)]">
+            #{tag}
+          </span>
+        ))}
+      </div>
+    )}
+  </div>
+</article>
+

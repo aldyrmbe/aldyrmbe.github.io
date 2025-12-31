@@ -1,114 +1,154 @@
 ---
-import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogCard from '../../components/BlogCard.astro';
 import { getCollection } from 'astro:content';
-import BaseHead from '../../components/BaseHead.astro';
-import Footer from '../../components/Footer.astro';
-import FormattedDate from '../../components/FormattedDate.astro';
-import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Get unique categories and tags
+const allCategories = [...new Set(allPosts.map(p => p.data.category))].filter(Boolean).sort();
+const allTags = [...new Set(allPosts.flatMap(p => p.data.tags))].sort();
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</section>
-		</main>
-		<Footer />
-	</body>
-</html>
+<BaseLayout title="Blog" description="Thoughts, tutorials, and insights on software development, technology, and the journey of building great products.">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+    <!-- Header -->
+    <header class="mb-12 opacity-0 animate-fadeIn">
+      <div class="font-mono text-sm text-[var(--color-accent-cyan)] mb-2">
+        <span class="text-[var(--color-text-muted)]">$</span> cat ./blog/*.md | less
+      </div>
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] mb-4">
+        Blog
+      </h1>
+      <p class="text-lg text-[var(--color-text-secondary)] max-w-2xl">
+        Thoughts, tutorials, and insights from my journey as a software developer. 
+        Writing to learn, sharing to grow.
+      </p>
+    </header>
+    
+    <!-- Category Filter -->
+    <div class="mb-12 opacity-0 animate-fadeIn stagger-1">
+      <div class="font-mono text-sm text-[var(--color-text-muted)] mb-4">
+        <span class="text-[var(--color-accent-emerald)]">$</span> filter --by category
+      </div>
+      <div class="flex flex-wrap gap-2" id="category-filters">
+        <button 
+          class="category-filter active px-3 py-1 rounded-lg font-mono text-sm transition-all duration-200 bg-[var(--color-accent-cyan)]/10 text-[var(--color-accent-cyan)] border border-[var(--color-accent-cyan)]/20"
+          data-category="all"
+        >
+          all
+        </button>
+        {allCategories.map(category => (
+          <button 
+            class="category-filter px-3 py-1 rounded-lg font-mono text-sm transition-all duration-200 bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] border border-transparent hover:border-[var(--color-border)]"
+            data-category={category?.toLowerCase()}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+    </div>
+    
+    <!-- Blog Posts Grid -->
+    {sortedPosts.length > 0 ? (
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="posts-grid">
+        {sortedPosts.map((post, index) => (
+          <div 
+            class="post-item opacity-0 animate-fadeIn" 
+            style={`animation-delay: ${0.1 + index * 0.1}s`}
+            data-category={post.data.category?.toLowerCase()}
+            data-tags={post.data.tags.join(',')}
+          >
+            <BlogCard
+              title={post.data.title}
+              description={post.data.description}
+              slug={post.id}
+              pubDate={post.data.pubDate}
+              tags={post.data.tags}
+              category={post.data.category}
+              heroImage={post.data.heroImage}
+            />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-12">
+        <div class="font-mono text-[var(--color-text-muted)] mb-4">
+          <span class="text-[var(--color-accent-cyan)]">$</span> ls ./blog
+        </div>
+        <p class="text-[var(--color-text-muted)]">
+          No posts yet. Check back soon!
+        </p>
+      </div>
+    )}
+    
+    <!-- Empty state -->
+    <div id="empty-state" class="hidden text-center py-12">
+      <p class="text-[var(--color-text-muted)] font-mono">
+        No posts found in that category. Try another filter.
+      </p>
+    </div>
+    
+    <!-- Tags Cloud -->
+    {allTags.length > 0 && (
+      <aside class="mt-16 pt-12 border-t border-[var(--color-border)]">
+        <div class="font-mono text-sm text-[var(--color-text-muted)] mb-4">
+          <span class="text-[var(--color-accent-emerald)]">$</span> cat ./tags.json
+        </div>
+        <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">
+          Browse by Tags
+        </h2>
+        <div class="flex flex-wrap gap-2">
+          {allTags.map(tag => (
+            <span class="px-3 py-1 rounded-lg bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)] text-sm font-mono hover:bg-[var(--color-accent-cyan)]/10 hover:text-[var(--color-accent-cyan)] transition-colors cursor-default">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      </aside>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  const filterButtons = document.querySelectorAll('.category-filter');
+  const postItems = document.querySelectorAll('.post-item');
+  const emptyState = document.getElementById('empty-state');
+  
+  filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const category = button.getAttribute('data-category');
+      
+      // Update active state
+      filterButtons.forEach(btn => {
+        btn.classList.remove('active', 'bg-[var(--color-accent-cyan)]/10', 'text-[var(--color-accent-cyan)]', 'border-[var(--color-accent-cyan)]/20');
+        btn.classList.add('bg-[var(--color-bg-tertiary)]', 'text-[var(--color-text-secondary)]');
+      });
+      button.classList.add('active', 'bg-[var(--color-accent-cyan)]/10', 'text-[var(--color-accent-cyan)]', 'border-[var(--color-accent-cyan)]/20');
+      button.classList.remove('bg-[var(--color-bg-tertiary)]', 'text-[var(--color-text-secondary)]');
+      
+      // Filter posts
+      let visibleCount = 0;
+      postItems.forEach(item => {
+        const postCategory = item.getAttribute('data-category') || '';
+        const shouldShow = category === 'all' || postCategory === category;
+        
+        if (shouldShow) {
+          item.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+      
+      // Show/hide empty state
+      if (visibleCount === 0) {
+        emptyState?.classList.remove('hidden');
+      } else {
+        emptyState?.classList.add('hidden');
+      }
+    });
+  });
+</script>
+
