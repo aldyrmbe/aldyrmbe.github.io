@@ -24,10 +24,9 @@ const experience = [
 ];
 
 const skills = {
-  languages: ["TypeScript", "JavaScript", "Python", "Go", "SQL"],
-  frontend: ["React", "Next.js", "Astro", "Tailwind CSS", "Vue.js"],
-  backend: ["Node.js", "Express", "FastAPI", "PostgreSQL", "Redis"],
-  tools: ["Git", "Docker", "AWS", "Vercel", "Linux"],
+  languages: ["Java", "JavaScript"],
+  frontend: ["Vue", "React"],
+  backend: ["Java"]
 };
 ---
 
@@ -86,8 +85,7 @@ const skills = {
         <pre class="text-sm"><code>{`{`}
   <span class="text-[var(--color-accent-purple)]">"languages"</span>: [<span class="text-[var(--color-accent-emerald)]">{skills.languages.map(s => `"${s}"`).join(', ')}</span>],
   <span class="text-[var(--color-accent-purple)]">"frontend"</span>: [<span class="text-[var(--color-accent-emerald)]">{skills.frontend.map(s => `"${s}"`).join(', ')}</span>],
-  <span class="text-[var(--color-accent-purple)]">"backend"</span>: [<span class="text-[var(--color-accent-emerald)]">{skills.backend.map(s => `"${s}"`).join(', ')}</span>],
-  <span class="text-[var(--color-accent-purple)]">"tools"</span>: [<span class="text-[var(--color-accent-emerald)]">{skills.tools.map(s => `"${s}"`).join(', ')}</span>]
+  <span class="text-[var(--color-accent-purple)]">"backend"</span>: [<span class="text-[var(--color-accent-emerald)]">{skills.backend.map(s => `"${s}"`).join(', ')}</span>]
 {`}`}</code></pre>
       </Terminal>
     </section>
